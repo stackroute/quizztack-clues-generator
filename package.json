@@ -20,10 +20,11 @@
   "license": "MIT",
   "dependencies": {
     "async": "^2.1.4",
+    "nlp_compromise": "^6.5.3",
     "redis": "^2.6.3",
-    "superagent": "^3.0.0",
     "redis-client": "^0.3.5",
     "request": "^2.79.0",
-    "nlp_compromise": "^6.5.3"
+    "superagent": "^3.0.0",
+    "wikidata-sdk": "^4.1.0"
   }
 }
