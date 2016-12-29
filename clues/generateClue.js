@@ -27,6 +27,7 @@ module.exports = function(name, description, callback) {
                 var des = item.result.description;
                 var name = item.result.name;
                 var nameArr = name.split(' ');
+                console.log(nameArr);
                 var nameLength = nameArr.length;
                 var splitByDot=nlp.text(clue);
                 splitByDot.sentences.map(function(value){
