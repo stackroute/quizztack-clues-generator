@@ -7,15 +7,12 @@ var pub = redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
 var dataList=redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
 var workqueue= redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
 var nlp = require('nlp_compromise');
-
 workqueue.on("error", (err) => {
   console.log('Error:',err);
 });
-
 workqueue.on("ready", () => {
   getClues();
 });
-
 function getClues(){
   console.log('in get clues');
   workqueue.BRPOP('workQueue',0,(err, clueData) => {
@@ -34,7 +31,6 @@ function getClues(){
     }
   });
 }
-
 function processClues(clueData,callback){
   var data=JSON.parse(clueData);
   listValue= data.workQueueData;
