@@ -7,12 +7,15 @@ var pub = redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
 var dataList=redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
 var workqueue= redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
 var nlp = require('nlp_compromise');
+
 workqueue.on("error", (err) => {
   console.log('Error:',err);
 });
+
 workqueue.on("ready", () => {
   getClues();
 });
+
 function getClues(){
   console.log('in get clues');
   workqueue.BRPOP('workQueue',0,(err, clueData) => {
@@ -31,6 +34,7 @@ function getClues(){
     }
   });
 }
+
 function processClues(clueData,callback){
   var data=JSON.parse(clueData);
   listValue= data.workQueueData;
@@ -43,6 +47,7 @@ function processClues(clueData,callback){
     if (!error && response.statusCode == 200)
     {
       var cluesJson=JSON.parse(response.body);
+      var oneElement=true;
       async.each(cluesJson.itemListElement, function(item, callback1){
         wikipediaUri='https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles='+item.result.name;
         request(wikipediaUri, function (error, response, body)
@@ -51,7 +56,8 @@ function processClues(clueData,callback){
           {
             var clues=JSON.parse(response.body);
             async.each(clues.query.pages, function(index,callback2){
-              if(item.result.hasOwnProperty('detailedDescription')&&item.result.description==description){
+              if(item.result.hasOwnProperty('detailedDescription')&&item.result.description===description&&oneElement){
+                console.log(item.result.name);
                 item.result.detailedDescription.articleBody=index.extract
                 var clue=item.result.detailedDescription.articleBody;
                 var flag=0;
@@ -131,6 +137,7 @@ function processClues(clueData,callback){
                     pub.publish('publishList',JSON.stringify({clueData:item.result}));
                   }
                 }
+                oneElement=false;
               }
               callback2(null);
             },function(err)
