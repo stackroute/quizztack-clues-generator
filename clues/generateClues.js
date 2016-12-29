@@ -8,15 +8,12 @@ var sub = redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
 var dataList=redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
 var workqueue= redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
 var nlp = require('nlp_compromise');
-
 workqueue.on("error", (err) => {
   console.log('Error:',err);
 });
-
 workqueue.on("ready", () => {
   getClues();
 });
-
 function getClues(){
   console.log('in get clues');
   workqueue.BRPOP('workQueue',0,(err, clueData) => {
@@ -35,13 +32,12 @@ function getClues(){
     }
   });
 }
-
 function processClues(clueData,callback){
   var data=JSON.parse(clueData);
   listValue= data.workQueueData;
   description= data.selectedSubjectDescription;
   searchId=data.searchId;
-  var count=0,image=[];
+  var count=0,image={};
   searchUri='https://kgsearch.googleapis.com/v1/entities:search?query='+listValue+'&key=AIzaSyBIqOeykX5B6xGKC7xsZWmS86P81Zr12DY&indent=True';
   request(searchUri, function (error, response, body)
   {
@@ -120,6 +116,7 @@ function processClues(clueData,callback){
                   {
                     clueArr=sentences;
                     result=clueArr;
+                    item.result.detailedDescription.articleBody=result;
                   }
                   if(item.result.image){
                   }
@@ -128,9 +125,10 @@ function processClues(clueData,callback){
                     item.result["image"]=image;
                   }
                   if(result!=undefined){
-                    dataList.lpush(searchId,JSON.stringify({clues:result,clueData:item.result}), function(error , list) {
-                      console.log('remaining elements in the list is :',list);
+                    dataList.lpush(searchId,JSON.stringify({clueData:item.result}), function(error , list) {
+                      console.log('Elements in the list is :',list);
                     });
+                    pub.publish('publishList',JSON.stringify({clueData:item.result}));
                   }
                 }
               }
