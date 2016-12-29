@@ -9,16 +9,17 @@ module.exports = function(name, description, callback) {
   {
     if (!error && response.statusCode == 200)
     {
-      var cluesJson=JSON.parse(response.body);
+      let cluesJson=JSON.parse(response.body);
       async.each(cluesJson.itemListElement, function(item, callback1){
         wikipediaUri='https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles='+item.result.name;
         request(wikipediaUri, function (error, response, body)
         {
           if (!error && response.statusCode == 200)
           {
-            var clues=JSON.parse(response.body);
-            async.each(clues.query.pages, function(index,callback2){
-              if(item.result.hasOwnProperty('detailedDescription')&&item.result.description==description){
+            let clues=JSON.parse(response.body);
+            async.each(clues.query.pages, function(index,callback2) {
+              if(item.result.hasOwnProperty('detailedDescription') && item.result.description === description) {
+                console.log(index.extract);
                 item.result.detailedDescription.articleBody=index.extract
                 var clue=item.result.detailedDescription.articleBody;
                 var flag=0;
@@ -101,6 +102,9 @@ module.exports = function(name, description, callback) {
                   // }
                   callback(null, clueData);
                 }
+              }
+              else {
+                callback(null, false);
               }
               callback2(null);
             },function(err)
