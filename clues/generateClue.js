@@ -1,47 +1,10 @@
 var async = require("async");
 var request = require('request');
-var redis = require('redis');
-const redisUrl = process.env.REDIS_URL || "localhost";
-const redisPort = process.env.REDIS_PORT || "6379";
-var pub = redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
-var dataList=redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
-var workqueue= redis.createClient(redisPort, process.env.REDIS_HOSTNAME);
 var nlp = require('nlp_compromise');
 
-workqueue.on("error", (err) => {
-  console.log('Error:',err);
-});
-
-workqueue.on("ready", () => {
-  getClues();
-});
-
-function getClues(){
-  console.log('in get clues');
-  workqueue.BRPOP('workQueue',0,(err, clueData) => {
-    if(err) { process.exit(-1); }
-    var data=JSON.parse(clueData[1]);
-    value= data.workQueueData;
-    description= data.selectedSubjectDescription;
-    searchId=data.searchId;
-    if(value!=null){
-      console.log('Start Processing:',value);
-      processClues(JSON.stringify(data), (err) => {
-        if(err) { return workqueue.lpush('clueGeneratorWorkQueue',value); }
-        console.log('Processing Complete',value);
-        setTimeout(getClues);
-      });
-    }
-  });
-}
-
-function processClues(clueData,callback){
-  var data=JSON.parse(clueData);
-  listValue= data.workQueueData;
-  description= data.selectedSubjectDescription;
-  searchId=data.searchId;
-  var count=0,image={};
-  searchUri='https://kgsearch.googleapis.com/v1/entities:search?query='+listValue+'&key=AIzaSyBIqOeykX5B6xGKC7xsZWmS86P81Zr12DY&indent=True';
+module.exports = function(name, description, callback) {
+  var clueData;
+  searchUri='https://kgsearch.googleapis.com/v1/entities:search?query='+name+'&key=AIzaSyBIqOeykX5B6xGKC7xsZWmS86P81Zr12DY&indent=True';
   request(searchUri, function (error, response, body)
   {
     if (!error && response.statusCode == 200)
@@ -128,12 +91,14 @@ function processClues(clueData,callback){
                     image["contentUrl"]="http://res.cloudinary.com/deaxb0msww/image/upload/v1481087596/Image-Not-Available_tcpeee.jpg";
                     item.result["image"]=image;
                   }
-                  if(result!=undefined){
-                    dataList.lpush(searchId,JSON.stringify({clueData:item.result}), function(error , list) {
-                      console.log('Elements in the list is :',list);
-                    });
-                    pub.publish('publishList',JSON.stringify({clueData:item.result}));
-                  }
+                  clueData=item.result;
+                  // if(result!=undefined){
+                  //   dataList.lpush(searchId,JSON.stringify({clueData:item.result}), function(error , list) {
+                  //     console.log('Elements in the list is :',list);
+                  //   });
+                  //   pub.publish('publishList',JSON.stringify({clueData:item.result}));
+                  // }
+                  callback(null, clueData);
                 }
               }
               callback2(null);
@@ -161,5 +126,4 @@ function processClues(clueData,callback){
       });
     }
   })
-  callback(null);
 }

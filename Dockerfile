@@ -1,6 +1,6 @@
 FROM mhart/alpine-node-auto
-RUN mkdir /clueGenerator -p
-WORKDIR /clueGenerator
+RUN mkdir /clues-generator -p
+WORKDIR /clues-generator
 COPY package.json .
 RUN npm install --production
 COPY . .
