@@ -86,12 +86,8 @@ module.exports = function(name, description, callback) {
                     result=clueArr;
                     item.result.detailedDescription.articleBody=result;
                   }
-                  if(item.result.image){
-
-                  }
-                  else{
-                    image["contentUrl"]="http://res.cloudinary.com/deaxb0msww/image/upload/v1481087596/Image-Not-Available_tcpeee.jpg";
-                    item.result["image"]=image;
+                  if(!item.result.image){
+                    item.result.image = { contentUrl: "http://res.cloudinary.com/deaxb0msww/image/upload/v1481087596/Image-Not-Available_tcpeee.jpg" }
                   }
                   clueData=item.result;
                   // if(result!=undefined){
