@@ -23,18 +23,13 @@ function getMessage() {
 		if(!replyString) { return; }
 		const reply = JSON.parse(replyString[1]);
 		console.log('reply:', reply);
-		generateClue(reply.subject, reply.description, (err, clues) => {
+		generateClue(reply.searchId,reply.subject, reply.description, (err, clues) => {
 			if(err) { console.log('ERR:', err); }
-			const data = {
-				subject: reply.subject,
-				clues: clues,
-				category: reply.category
-			}
 			const outputList = 'cluesGenOutputQueue_' + reply.searchId;
 			console.log('outputList:', outputList);
-			client.lpush(outputList, JSON.stringify(data), (err) => {
+			client.lpush(outputList, JSON.stringify(clues), (err) => {
 				if(err) { console.log('ERR:', err); return; }
-				console.log('Pushed:', data);
+				console.log('Pushed:', clues);
 				getMessage();
 			});
 		});

@@ -2,8 +2,7 @@ var async = require("async");
 var request = require('request');
 var nlp = require('nlp_compromise');
 
-module.exports = function(name, description, callback) {
-  var clueData;
+module.exports = function(searchId,similarSubject,description, callback) {
   searchUri='https://kgsearch.googleapis.com/v1/entities:search?query='+name+'&key=AIzaSyBIqOeykX5B6xGKC7xsZWmS86P81Zr12DY&indent=True';
   request(searchUri, function (error, response, body)
   {
@@ -89,14 +88,7 @@ module.exports = function(name, description, callback) {
                   if(!item.result.image){
                     item.result.image = { contentUrl: "http://res.cloudinary.com/deaxb0msww/image/upload/v1481087596/Image-Not-Available_tcpeee.jpg" }
                   }
-                  clueData=item.result;
-                  // if(result!=undefined){
-                  //   dataList.lpush(searchId,JSON.stringify({clueData:item.result}), function(error , list) {
-                  //     console.log('Elements in the list is :',list);
-                  //   });
-                  //   pub.publish('publishList',JSON.stringify({clueData:item.result}));
-                  // }
-                  callback(null, clueData);
+                  callback(null,item.result);
                 }
               }
               else {

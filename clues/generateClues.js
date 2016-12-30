@@ -13,6 +13,7 @@ workqueue.on("error", (err) => {
 });
 
 workqueue.on("ready", () => {
+  console.log('queue ready');
   getClues();
 });
 
@@ -47,7 +48,7 @@ function processClues(clueData,callback){
     if (!error && response.statusCode == 200)
     {
       var cluesJson=JSON.parse(response.body);
-      var oneElement=true;
+    console.log(cluesJson);
       async.each(cluesJson.itemListElement, function(item, callback1){
         wikipediaUri='https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles='+item.result.name;
         request(wikipediaUri, function (error, response, body)
@@ -56,8 +57,8 @@ function processClues(clueData,callback){
           {
             var clues=JSON.parse(response.body);
             async.each(clues.query.pages, function(index,callback2){
-              if(item.result.hasOwnProperty('detailedDescription')&&item.result.description===description&&oneElement){
-                console.log(item.result.name);
+              if(item.result.hasOwnProperty('detailedDescription')&&item.result.description===description){
+
                 item.result.detailedDescription.articleBody=index.extract
                 var clue=item.result.detailedDescription.articleBody;
                 var flag=0;
@@ -137,7 +138,7 @@ function processClues(clueData,callback){
                     pub.publish('publishList',JSON.stringify({clueData:item.result}));
                   }
                 }
-                oneElement=false;
+
               }
               callback2(null);
             },function(err)
