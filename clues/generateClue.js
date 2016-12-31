@@ -3,12 +3,14 @@ var request = require('request');
 var nlp = require('nlp_compromise');
 
 module.exports = function(searchId,similarSubject,description, callback) {
-  searchUri='https://kgsearch.googleapis.com/v1/entities:search?query='+name+'&key=AIzaSyBIqOeykX5B6xGKC7xsZWmS86P81Zr12DY&indent=True';
+  console.log('similar'+similarSubject);
+  searchUri='https://kgsearch.googleapis.com/v1/entities:search?query='+similarSubject+'&key=AIzaSyBIqOeykX5B6xGKC7xsZWmS86P81Zr12DY&indent=True';
   request(searchUri, function (error, response, body)
   {
     if (!error && response.statusCode == 200)
     {
       let cluesJson=JSON.parse(response.body);
+      let oneElement=true;
       async.each(cluesJson.itemListElement, function(item, callback1){
         wikipediaUri='https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles='+item.result.name;
         request(wikipediaUri, function (error, response, body)
@@ -17,8 +19,8 @@ module.exports = function(searchId,similarSubject,description, callback) {
           {
             let clues=JSON.parse(response.body);
             async.each(clues.query.pages, function(index,callback2) {
-              if(item.result.hasOwnProperty('detailedDescription') && item.result.description === description) {
-                console.log(index.extract);
+              if(item.result.hasOwnProperty('detailedDescription') && item.result.description === description&&oneElement===true) {
+                console.log('matched name'+item.result.name);
                 item.result.detailedDescription.articleBody=index.extract
                 var clue=item.result.detailedDescription.articleBody;
                 var flag=0;
@@ -79,44 +81,55 @@ module.exports = function(searchId,similarSubject,description, callback) {
                       sentences[j]=sentences[j].replace(removeElement,"Our Subject");
                     }
                   }
+                  if(!item.result.image){
+                    item.result.image = { contentUrl: "http://res.cloudinary.com/deaxb0msww/image/upload/v1481087596/Image-Not-Available_tcpeee.jpg" }
+                  }
                   if(sentences.length>5)
                   {
                     clueArr=sentences;
                     result=clueArr;
                     item.result.detailedDescription.articleBody=result;
+                    oneElement=false;
+                    // console.log('items');
+                    // console.log(item.result);
+                    callback(null,item.result);
                   }
-                  if(!item.result.image){
-                    item.result.image = { contentUrl: "http://res.cloudinary.com/deaxb0msww/image/upload/v1481087596/Image-Not-Available_tcpeee.jpg" }
+                  else {
+                    oneElement=true;
+                    callback(null, false);
                   }
-                  callback(null,item.result);
+                }else {
+                  oneElement=true;
+                  callback(null, false);
                 }
               }
-              else {
-                callback(null, false);
-              }
-              callback2(null);
-            },function(err)
-            {
-              if(err)
+                else {
+                  oneElement=true;
+                  callback(null, false);
+                }
+                callback2(null);
+              },function(err)
               {
-                console.log('Failed to process');
-              }
-              else {
-                callback1(null);
-              }
-            });
+                if(err)
+                {
+                  console.log('Failed to process');
+                }
+                else {
+                  callback1(null);
+                }
+              });
+            }
+          });
+        },function(err)
+        {
+          if(err)
+          {
+            console.log('Failed to process');
+          }
+          else {
+            console.log('Result Sent');
           }
         });
-      },function(err)
-      {
-        if(err)
-        {
-          console.log('Failed to process');
-        }
-        else {
-          console.log('Result Sent');
-        }
-      });
-    }
-  })
-}
+      }
+    })
+  }
