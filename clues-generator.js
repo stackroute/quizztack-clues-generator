@@ -16,13 +16,6 @@ client.on('ready', () => {
 	getMessage();
 });
 
-// storeClient.on('error', (err) => {
-// 	if(err) { console.log('ERR:', err); return; }
-// });
-//
-// storeClient.on('ready', () => {
-// 	storeMessage();
-// });
 
 function getMessage() {
 	client.brpop('cluesGenInputWorkQueue', 0, (err, replyString) => {
@@ -53,13 +46,14 @@ function getMessage() {
 
 
 sub.subscribe('publishSearchId');
-sub.on('message',function(channel,searchId){
-	var data=JSON.parse(searchId);
-	storeMessage(data.searchId);
+sub.on('message',function(channel,searchId_and_topic){
+	var data=JSON.parse(searchId_and_topic);
+	storeMessage(data.searchId,data.topic);
 });
 
 
-function storeMessage(searchId) {
+function storeMessage(searchId,topic) {
+	console.log('Topic'+topic);
 	storeClient.brpop(searchId, 0, (err, replyString) => {
 		if(err) { console.log('ERR:', err); return; }
 		if(!replyString) { return; }
@@ -67,11 +61,11 @@ function storeMessage(searchId) {
 		const data = {
       "subject": reply.clueData.name,
       "clueArray": reply.clueData.detailedDescription.articleBody,
-			"searchId":reply.searchId
+			"topic":topic
     };
-		storeClue(data, (err,searchId) => {
+		storeClue(data, (err) => {
 			if(err) { console.log('ERR:', err); }
-			setTimeout(storeMessage(JSON.parse(searchId)));
+			setTimeout(storeMessage);
 		});
 	});
 }

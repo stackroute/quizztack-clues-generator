@@ -5,27 +5,21 @@ var session = driver.session();
 module.exports = function(clueObject,callback) {
   var subject=clueObject.subject;
   var clueArr=clueObject.clueArray;
-  var topic='Sports';
+  var topic=clueObject.topic;
   var difficulty=200,start=0,end=0;
   var clueArrayLength=clueArr.length;
-  console.log("ArrayLength"+clueArrayLength);
-  console.log(clueArr);
   var lengthOfInterval=Math.round(clueArrayLength/5);
   end=lengthOfInterval;
-  console.log(lengthOfInterval);
-
   while(clueArrayLength>0)
   {
     clueArray=clueArr.slice(start,end);
-    console.log(subject);
-    console.log(clueArray);
-    console.log(topic);
-    console.log(difficulty);
-    let query="MERGE (t:topic {name:{topicChosen}})<-[:Belongs_to]-(s:subject {name:{subject}}) FOREACH (clueArray in {clue} | MERGE (s)-[:Described_by]->(c:clue{name:clue,difficulty:'600'})) return t,s"
+    let query="MERGE (t:topic {topic:{topicChosen}})<-[:Belongs_to]-(s:subject {subject:{subject}}) FOREACH (clueArray in {clue} | MERGE (s)-[:Described_by]->(c:clue{clue:clueArray,difficulty:{difficulty}})) return t,s"
     let params={topicChosen:topic,subject:subject,clue:clueArr,difficulty:difficulty};
     session
     .run(query,params)
     .then(function(results){
+      console.log('results');
+      console.log(results);
       session.close;
       driver.close;
     })
@@ -34,5 +28,5 @@ module.exports = function(clueObject,callback) {
     end=end+lengthOfInterval;
     clueArrayLength=clueArrayLength-lengthOfInterval;
   }
-  //callback(null,clueObject.searchId);
+  callback(null);
 }

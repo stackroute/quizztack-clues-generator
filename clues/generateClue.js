@@ -20,7 +20,7 @@ module.exports = function(searchId,similarSubject,description, callback) {
             let clues=JSON.parse(response.body);
             async.each(clues.query.pages, function(index,callback2) {
               if(item.result.hasOwnProperty('detailedDescription') && item.result.description === description&&oneElement===true) {
-                console.log('matched name'+item.result.name);
+                //console.log('matched name'+item.result.name);
                 item.result.detailedDescription.articleBody=index.extract
                 var clue=item.result.detailedDescription.articleBody;
                 var flag=0;
@@ -29,7 +29,7 @@ module.exports = function(searchId,similarSubject,description, callback) {
                 var des = item.result.description;
                 var name = item.result.name;
                 var nameArr = name.split(' ');
-                console.log(nameArr);
+                //console.log(nameArr);
                 var nameLength = nameArr.length;
                 var splitByDot=nlp.text(clue);
                 splitByDot.sentences.map(function(value){
