@@ -20,7 +20,6 @@ module.exports = function(searchId,similarSubject,description, callback) {
             let clues=JSON.parse(response.body);
             async.each(clues.query.pages, function(index,callback2) {
               if(item.result.hasOwnProperty('detailedDescription') && item.result.description === description&&oneElement===true) {
-                //console.log('matched name'+item.result.name);
                 item.result.detailedDescription.articleBody=index.extract
                 var clue=item.result.detailedDescription.articleBody;
                 var flag=0;
@@ -28,9 +27,14 @@ module.exports = function(searchId,similarSubject,description, callback) {
                 var jeopardyClues=[];
                 var des = item.result.description;
                 var name = item.result.name;
-                var nameArr = name.split(' ');
-                //console.log(nameArr);
-                var nameLength = nameArr.length;
+                var nameArray = name.split(' ');
+                var nameArr=[];
+                var nameLength = nameArray.length;
+                for(names in nameArray)
+                {
+                  if(nameArray[names].length>2)
+                   nameArr.push(nameArray[names]);
+                }
                 var splitByDot=nlp.text(clue);
                 splitByDot.sentences.map(function(value){
                   var pattern = new RegExp(/((, ))/, "ig");
@@ -44,15 +48,21 @@ module.exports = function(searchId,similarSubject,description, callback) {
                       checkGrammer.sentences.forEach(function(terms){
                         if(terms.terms[0].tag=="Noun"||terms.terms[0].tag=="Adverb"||terms.terms[0].tag=="Person")
                         {
+                          var wordsCheck=terms.str.split(' ');
+                          if(wordsCheck.length>=3){
                           sentences.push(terms.str);
+                        }
                         }
                         else if(terms.terms[0].normal=="and")
                         {
                           terms.terms.forEach(function(value){
                             if((value.pos.hasOwnProperty("Verb")||value.pos.hasOwnProperty("Adjective"))&&flag==0)
                             {
+                              var wordsCheck=terms.str.split(' ');
+                              if(wordsCheck.length>=3){
                               sentences.push(terms.str);
                               flag=1;
+                            }
                             }
                           })
                           flag=0;
@@ -93,8 +103,7 @@ module.exports = function(searchId,similarSubject,description, callback) {
                     // console.log('items');
                     // console.log(item.result);
                     callback(null,item.result);
-                  }
-                  else {
+                  }else {
                     oneElement=true;
                     callback(null, false);
                   }
@@ -102,8 +111,7 @@ module.exports = function(searchId,similarSubject,description, callback) {
                   oneElement=true;
                   callback(null, false);
                 }
-              }
-                else {
+              }else {
                   oneElement=true;
                   callback(null, false);
                 }

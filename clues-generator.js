@@ -26,7 +26,7 @@ function getMessage() {
 			if(err) { console.log('ERR:', err); }
 			if(clues!=false){
 				console.log('search id'+reply.searchId);
-				console.log('clues received')
+				console.log('clues received');
 				console.log(clues);
 				client.lpush(reply.searchId, JSON.stringify({clueData:clues}), function(error , clues) {
 					if(err) { console.log('ERR:', err); return; }
@@ -35,10 +35,10 @@ function getMessage() {
 				}
 				});
 				pub.publish('publishList',JSON.stringify({clueData:clues}));
-				setTimeout(getMessage);
+				getMessage();
 			}
 			else {
-				setTimeout(getMessage);
+				getMessage();
 			}
 		});
 	});
@@ -53,19 +53,28 @@ sub.on('message',function(channel,searchId_and_topic){
 
 
 function storeMessage(searchId,topic) {
-	console.log('Topic'+topic);
 	storeClient.brpop(searchId, 0, (err, replyString) => {
 		if(err) { console.log('ERR:', err); return; }
 		if(!replyString) { return; }
 		const reply = JSON.parse(replyString[1]);
+		console.log(clue);
 		const data = {
       "subject": reply.clueData.name,
-      "clueArray": reply.clueData.detailedDescription.articleBody,
+      "clueArray":reply.clueData.detailedDescription.articleBody,
 			"topic":topic
     };
 		storeClue(data, (err) => {
 			if(err) { console.log('ERR:', err); }
-			setTimeout(storeMessage);
 		});
+			storeMessage(searchId,topic);
 	});
 }
+
+
+
+// const fetchQuestions = require('./clues/fetchQuestions');
+//
+// fetchQuestions((err, clues) => {
+//   if(err) { console.log('ERR:',err); return };
+//   console.log('Clue:', clues);
+// });
