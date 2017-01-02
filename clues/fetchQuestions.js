@@ -3,7 +3,6 @@ var driver = neo4j.driver(process.env.NEO4j_DRIVER, neo4j.auth.basic("neo4j", "p
 var session = driver.session();
 var async = require("async");
 module.exports = function(topic, callback) {
-  console.log('topic'+topic);
   let query="match(t:topic{topic:{topicSelected}})<-[:Belongs_to]-(s:subject) return s order by rand() limit 5"
   let params={topicSelected:topic};
   session
@@ -18,11 +17,26 @@ module.exports = function(topic, callback) {
     results.records.forEach(function(item) {
       item.forEach(function(value) {
         const subject = value.properties.subject;
-
-        const subjectItem = {subject: subject, clues: []};
+        const subjectItem = {subject: subject, clues: [], options:[]};
         cluesArray.push(subjectItem);
         subjectMap[subject] = subjectItem;
-
+        let queryForOptions="match(t:topic{topic:{topicSelected}})<-[:Belongs_to]-(s:subject) match(s)-[:Described_by]->(c:clue) return s order by rand()  limit 4"
+        let paramsForOptions={topicSelected:topic};
+        session
+        .run(queryForOptions,paramsForOptions)
+        .then(function(results)
+        {
+          results.records.forEach(function(option) {
+          option.forEach(function(value) {
+              const option = value.properties.subject;
+              if(option!=subject&&(subjectItem.options.includes(option)===false)&&(subjectItem.options.length!=3)){
+                  subjectItem.options.push(option);
+              }
+            });
+          });
+          session.close;
+          driver.close;
+        });
         generateFunctionArray.push(generateCluesForSubject.bind(null, subject));
       });
     });
@@ -37,6 +51,7 @@ module.exports = function(topic, callback) {
           const clue = obj._fields[clueIndex];
 
           const subjectItem = subjectMap[subject];
+          if(subjectItem.clues.length!=5)
           subjectItem.clues.push(clue);
         });
       });

@@ -21,7 +21,6 @@ module.exports = function(searchId,similarSubject,description, callback) {
               if(item.result.hasOwnProperty('detailedDescription') && item.result.description === description&&oneElement===true) {
                 item.result.detailedDescription.articleBody=index.extract
                 var clue=item.result.detailedDescription.articleBody;
-                var flag=0;
                 var sentences=[],clueArr=[];
                 var jeopardyClues=[];
                 var des = item.result.description;
@@ -51,20 +50,6 @@ module.exports = function(searchId,similarSubject,description, callback) {
                           if(wordsCheck.length>=3){
                           sentences.push(terms.str);
                         }
-                        }
-                        else if(terms.terms[0].normal=="and")
-                        {
-                          terms.terms.forEach(function(value){
-                            if((value.pos.hasOwnProperty("Verb")||value.pos.hasOwnProperty("Adjective"))&&flag==0)
-                            {
-                              var wordsCheck=terms.str.split(' ');
-                              if(wordsCheck.length>=3){
-                              sentences.push(terms.str);
-                              flag=1;
-                            }
-                            }
-                          })
-                          flag=0;
                         }
                       })
                     }
