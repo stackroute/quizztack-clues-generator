@@ -31,3 +31,23 @@ module.exports = function(callback) {
   });
   callback(null);
 }
+
+
+
+    // let queryForOptions="match(t:topic{topic:{topicSelected}})<-[:Belongs_to]-(s:subject) match(s)-[:Described_by]->(c:clue) return s order by rand() limit 30"
+    // let paramsForOptions={topicSelected:topic};
+    // session
+    // .run(queryForOptions,paramsForOptions)
+    // .then(function(results)
+    // {
+    //   var tempArr=[];
+    //   results.records.map(function(obj){
+    //     obj.forEach(function(value){
+    //       tempArr.push(value.properties.subject);
+    //     })
+    //   })
+    //   session.close;
+    //   driver.close;
+    //   options[topic]=tempArr;
+    //   //console.log(options);
+    // })

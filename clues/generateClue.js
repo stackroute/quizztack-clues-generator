@@ -3,7 +3,6 @@ var request = require('request');
 var nlp = require('nlp_compromise');
 
 module.exports = function(searchId,similarSubject,description, callback) {
-  console.log('similar'+similarSubject);
   searchUri='https://kgsearch.googleapis.com/v1/entities:search?query='+similarSubject+'&key=AIzaSyBIqOeykX5B6xGKC7xsZWmS86P81Zr12DY&indent=True';
   request(searchUri, function (error, response, body)
   {

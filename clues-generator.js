@@ -1,34 +1,36 @@
 const redis = require('redis');
 const redisHost = process.env.REDIS_HOST || 'localhost';
 const redisPort = process.env.REDIS_PORT || 6379;
-const client = redis.createClient(redisPort, redisHost);
+const popClient = redis.createClient(redisPort, redisHost);
+const pushClient = redis.createClient(redisPort, redisHost);
 const storeClient = redis.createClient(redisPort, redisHost);
 const pub = redis.createClient(redisPort, redisHost);
 const sub = redis.createClient(redisPort, redisHost);
 const generateClue = require('./clues/generateClue');
 const storeClue = require('./clues/storeClue');
-var count=0;
-client.on('error', (err) => {
+const async = require("async");
+
+pushClient.on('error', (err) => {
 	if(err) { console.log('ERR:', err); return; }
 });
 
-client.on('ready', () => {
+pushClient.on('ready', () => {
 	getMessage();
 });
 
 
 function getMessage() {
-	client.brpop('cluesGenInputWorkQueue', 0, (err, replyString) => {
+	popClient.brpop('cluesGenInputWorkQueue', 0, (err, replyString) => {
 		if(err) { console.log('ERR:', err); return; }
 		if(!replyString) { return; }
 		const reply = JSON.parse(replyString[1]);
 		generateClue(reply.searchId,reply.subject, reply.description, (err, clues) => {
 			if(err) { console.log('ERR:', err); }
-			if(clues!=false){
+			if(clues){
 				console.log('search id'+reply.searchId);
 				console.log('clues received');
 				console.log(clues);
-				client.lpush(reply.searchId, JSON.stringify({clueData:clues}), function(error , clues) {
+				pushClient.lpush(reply.searchId, JSON.stringify({clueData:clues}), function(error , clues) {
 					if(err) { console.log('ERR:', err); return; }
 					else{
 					console.log('Pushed:', clues);
@@ -57,7 +59,6 @@ function storeMessage(searchId,topic) {
 		if(err) { console.log('ERR:', err); return; }
 		if(!replyString) { return; }
 		const reply = JSON.parse(replyString[1]);
-		console.log(clue);
 		const data = {
       "subject": reply.clueData.name,
       "clueArray":reply.clueData.detailedDescription.articleBody,
@@ -72,9 +73,16 @@ function storeMessage(searchId,topic) {
 
 
 
-// const fetchQuestions = require('./clues/fetchQuestions');
+
+
+// const fetchOptions = require('./clues/fetchOptions');
+// var topics=["Sports","Music","Science","History","Politics","Movies"];
+// const functionArray = topics.map(function(topic) {
+// 	console.log('infunction');
+// 	return fetchQuestions.bind(null, topic);
+// });
 //
-// fetchQuestions((err, clues) => {
-//   if(err) { console.log('ERR:',err); return };
-//   console.log('Clue:', clues);
+// async.parallel(functionArray, function(err, results) {
+// 	if(err) { /* TODO: Handle Error */console.log('ERR:',err); return; }
+// 	console.log('res:', results);
 // });
