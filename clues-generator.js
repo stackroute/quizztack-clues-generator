@@ -65,9 +65,9 @@ subDelete.subscribe('publishSearchIdToDelete');
 subDelete.on('message',function(channel,searchId){
 	var data=JSON.parse(searchId);
 	console.log('deletequeue',data.searchId);
+	pushClient.quit();
 	deleteClient.del(data.searchId);
 	deleteWorkQueue.del(data.workQueue);
-	flushdb.FLUSHDB();
 });
 
 function storeMessage(searchId,topic) {

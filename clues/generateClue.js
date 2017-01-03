@@ -47,8 +47,9 @@ module.exports = function(searchId,similarSubject,description, callback) {
                       checkGrammer.sentences.forEach(function(terms){
                         if(terms.terms[0].tag=="Noun"||terms.terms[0].tag=="Adverb"||terms.terms[0].tag=="Person")
                         {
+                          const isUpperCase = (string) => /^[A-Z]*$/.test(string)
                           var wordsCheck=terms.str.split(' ');
-                          if(wordsCheck.length>=3){
+                          if(wordsCheck.length>=3&&isUpperCase(terms.str[0])){
                           sentences.push(terms.str);
                         }
                         }
@@ -79,14 +80,12 @@ module.exports = function(searchId,similarSubject,description, callback) {
                   if(!item.result.image){
                     item.result.image = { contentUrl: "http://res.cloudinary.com/deaxb0msww/image/upload/v1481087596/Image-Not-Available_tcpeee.jpg" }
                   }
-                  if(sentences.length>5)
+                  if(sentences.length>4)
                   {
                     clueArr=sentences;
                     result=clueArr;
                     item.result.detailedDescription.articleBody=result;
                     oneElement=false;
-                    // console.log('items');
-                    // console.log(item.result);
                     callback(null,item.result);
                   }else {
                     oneElement=true;
