@@ -17,6 +17,7 @@ module.exports = function(searchId,similarSubject,description, callback) {
           if (!error && response.statusCode == 200)
           {
             let clues=JSON.parse(response.body);
+            if(clues.query.pages!=undefined&&clues.query!=undefined){
             async.each(clues.query.pages, function(index,callback2) {
               if(item.result.hasOwnProperty('detailedDescription') && item.result.description === description&&oneElement===true) {
                 item.result.detailedDescription.articleBody=index.extract
@@ -110,6 +111,9 @@ module.exports = function(searchId,similarSubject,description, callback) {
                   callback1(null);
                 }
               });
+            }else{
+              callback(null, false);
+            }
             }
           });
         },function(err)
@@ -122,6 +126,7 @@ module.exports = function(searchId,similarSubject,description, callback) {
             console.log('Result Sent');
           }
         });
+
       }
     })
   }

@@ -1,11 +1,19 @@
+timerID=setInterval(()=> ClueGenerator(),5000)
+
+
+function ClueGenerator(){
 const redis = require('redis');
 const redisHost = process.env.REDIS_HOST || 'localhost';
 const redisPort = process.env.REDIS_PORT || 6379;
 const popClient = redis.createClient(redisPort, redisHost);
 const pushClient = redis.createClient(redisPort, redisHost);
 const storeClient = redis.createClient(redisPort, redisHost);
+const deleteClient = redis.createClient(redisPort, redisHost);
+const deleteWorkQueue = redis.createClient(redisPort, redisHost);
+const flushdb = redis.createClient(redisPort, redisHost);
 const pub = redis.createClient(redisPort, redisHost);
 const sub = redis.createClient(redisPort, redisHost);
+const subDelete = redis.createClient(redisPort, redisHost);
 const generateClue = require('./clues/generateClue');
 const storeClue = require('./clues/storeClue');
 const async = require("async");
@@ -53,6 +61,14 @@ sub.on('message',function(channel,searchId_and_topic){
 	storeMessage(data.searchId,data.topic);
 });
 
+subDelete.subscribe('publishSearchIdToDelete');
+subDelete.on('message',function(channel,searchId){
+	var data=JSON.parse(searchId);
+	console.log('deletequeue',data.searchId);
+	deleteClient.del(data.searchId);
+	deleteWorkQueue.del(data.workQueue);
+	flushdb.FLUSHDB();
+});
 
 function storeMessage(searchId,topic) {
 	storeClient.brpop(searchId, 0, (err, replyString) => {
@@ -82,3 +98,5 @@ async.parallel(functionArray, function(err, results) {
 	if(err) { /* TODO: Handle Error */console.log('ERR:',err); return; }
 	console.log('res:', results);
 });
+clearInterval(timerID);
+}

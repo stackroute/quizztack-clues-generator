@@ -6,6 +6,7 @@ module.exports = function(clueObject,callback) {
   var subject=clueObject.subject;
   var clueArr=clueObject.clueArray;
   var topic=clueObject.topic;
+  console.log(clueObject);
   let query="MERGE (t:topic {topic:{topicChosen}})<-[:Belongs_to]-(s:subject {subject:{subject}}) FOREACH (clueArray in {clueArr} | MERGE (s)-[:Described_by]->(c:clue{clue:clueArray})) return t,s"
   let params={topicChosen:topic,subject:subject,clueArr:clueArr};
   session
