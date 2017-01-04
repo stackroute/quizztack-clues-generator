@@ -1,19 +1,15 @@
 timerID=setInterval(()=> ClueGenerator(),5000)
 
-
 function ClueGenerator(){
 const redis = require('redis');
-const redisHost = process.env.REDIS_HOST || 'localhost';
-const redisPort = process.env.REDIS_PORT || 6379;
-const popClient = redis.createClient(redisPort, redisHost);
-const pushClient = redis.createClient(redisPort, redisHost);
-const storeClient = redis.createClient(redisPort, redisHost);
-const deleteClient = redis.createClient(redisPort, redisHost);
-const deleteWorkQueue = redis.createClient(redisPort, redisHost);
-const flushdb = redis.createClient(redisPort, redisHost);
-const pub = redis.createClient(redisPort, redisHost);
-const sub = redis.createClient(redisPort, redisHost);
-const subDelete = redis.createClient(redisPort, redisHost);
+
+const popClient = redis.createClient(6379, process.env.REDIS_HOST);
+const pushClient = redis.createClient(6379, process.env.REDIS_HOST);
+const deleteClient = redis.createClient(6379, process.env.REDIS_HOST);
+const sub = redis.createClient(6379, process.env.REDIS_HOST);
+const subDelete = redis.createClient(6379, process.env.REDIS_HOST);
+
+
 const generateClue = require('./clues/generateClue');
 const storeClue = require('./clues/storeClue');
 const async = require("async");
@@ -32,7 +28,7 @@ function getMessage() {
 		if(err) { console.log('ERR:', err); return; }
 		if(!replyString) { return; }
 		const reply = JSON.parse(replyString[1]);
-		generateClue(reply.searchId,reply.subject, reply.description, (err, clues) => {
+		generateClue(reply.searchId,reply.subject,reply.description, (err, clues) => {
 			if(err) { console.log('ERR:', err); }
 			if(clues){
 				console.log('search id'+reply.searchId);
@@ -44,7 +40,9 @@ function getMessage() {
 					console.log('Pushed:', clues);
 				}
 				});
-				pub.publish('publishList',JSON.stringify({clueData:clues}));
+			  pushClient.publish('publishList',JSON.stringify({clueData:clues}), ()=> {
+					console.log('publish');
+				});
 				getMessage();
 			}
 			else {
@@ -67,11 +65,11 @@ subDelete.on('message',function(channel,searchId){
 	console.log('deletequeue',data.searchId);
 	pushClient.quit();
 	deleteClient.del(data.searchId);
-	deleteWorkQueue.del(data.workQueue);
+	deleteClient.del(data.workQueue);
 });
 
 function storeMessage(searchId,topic) {
-	storeClient.brpop(searchId, 0, (err, replyString) => {
+	pushClient.brpop(searchId, 0, (err, replyString) => {
 		if(err) { console.log('ERR:', err); return; }
 		if(!replyString) { return; }
 		const reply = JSON.parse(replyString[1]);
@@ -87,16 +85,5 @@ function storeMessage(searchId,topic) {
 	});
 }
 
-
-const fetchQuestions = require('./clues/fetchQuestions');
-var topics=["Sports","Music","Science","History","Politics","Movies"];
-const functionArray = topics.map(function(topic) {
-	return fetchQuestions.bind(null, topic);
-});
-
-async.parallel(functionArray, function(err, results) {
-	if(err) { /* TODO: Handle Error */console.log('ERR:',err); return; }
-	console.log('res:', results);
-});
 clearInterval(timerID);
 }

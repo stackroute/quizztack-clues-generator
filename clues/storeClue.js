@@ -1,5 +1,6 @@
 var neo4j = require('neo4j-driver').v1;
-var driver = neo4j.driver(process.env.NEO4j_DRIVER, neo4j.auth.basic("neo4j", "password"));
+const neo4jDriver = process.env.NEO4j_DRIVER || 'bolt://localhost'
+var driver = neo4j.driver(neo4jDriver, neo4j.auth.basic("neo4j", "password"));
 var session = driver.session();
 
 module.exports = function(clueObject,callback) {
