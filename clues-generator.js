@@ -5,6 +5,7 @@ const redis = require('redis');
 
 const popClient = redis.createClient(6379, process.env.REDIS_HOST);
 const pushClient = redis.createClient(6379, process.env.REDIS_HOST);
+const storeClient = redis.createClient(6379, process.env.REDIS_HOST);
 const deleteClient = redis.createClient(6379, process.env.REDIS_HOST);
 const sub = redis.createClient(6379, process.env.REDIS_HOST);
 const subDelete = redis.createClient(6379, process.env.REDIS_HOST);
@@ -69,7 +70,7 @@ subDelete.on('message',function(channel,searchId){
 });
 
 function storeMessage(searchId,topic) {
-	pushClient.brpop(searchId, 0, (err, replyString) => {
+	storeClient.brpop(searchId, 0, (err, replyString) => {
 		if(err) { console.log('ERR:', err); return; }
 		if(!replyString) { return; }
 		const reply = JSON.parse(replyString[1]);
