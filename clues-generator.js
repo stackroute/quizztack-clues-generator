@@ -32,16 +32,16 @@ function getMessage() {
 		generateClue(reply.searchId,reply.subject,reply.description, (err, clues) => {
 			if(err) { console.log('ERR:', err); }
 			if(clues){
-				console.log('search id'+reply.searchId);
-				console.log('clues received');
-				console.log(clues);
+				// console.log('search id'+reply.searchId);
+				// console.log('clues received');
+				// console.log(clues);
 				pushClient.lpush(reply.searchId, JSON.stringify({clueData:clues}), function(error , clues) {
 					if(err) { console.log('ERR:', err); return; }
 					else{
 					console.log('Pushed:', clues);
 				}
 				});
-			  pushClient.publish('publishList',JSON.stringify({clueData:clues}), ()=> {
+			  pushClient.publish(reply.searchId+'_publishList',JSON.stringify({clueData:clues}), ()=> {
 					console.log('publish');
 				});
 				getMessage();
